@@ -15,3 +15,10 @@ An address book peer-to-peer protocol built on Libp2p, Helia and OrbitDB
 ```
 npm i decontact
 ```
+
+## Test 
+1. Clone this repositoty
+```
+npm install
+npm test
+```
