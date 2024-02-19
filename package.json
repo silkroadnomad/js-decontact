@@ -30,11 +30,25 @@
   },
   "homepage": "https://github.com/silkroadnomad/js-decontact#readme",
   "dependencies": {
-    "@orbitdb/core": "^2.0.1"
+    "@chainsafe/libp2p-gossipsub": "^12.0.0",
+    "@chainsafe/libp2p-noise": "^15.0.0",
+    "@chainsafe/libp2p-yamux": "^6.0.2",
+    "@helia/block-brokers": "^2.0.1",
+    "@libp2p/circuit-relay-v2": "^1.0.15",
+    "@libp2p/identify": "^1.0.14",
+    "@libp2p/webrtc": "^4.0.19",
+    "@libp2p/websockets": "^8.0.15",
+    "@orbitdb/core": "^2.0.1",
+    "blockstore-core": "^4.4.0",
+    "blockstore-level": "^1.1.8",
+    "helia": "^4.0.1",
+    "libp2p": "^1.2.3"
   },
   "devDependencies": {
     "assert": "^2.1.0",
     "cross-env": "^7.0.3",
-    "mocha": "^10.3.0"
+    "mocha": "^10.3.0",
+    "path": "^0.12.7",
+    "rimraf": "^5.0.5"
   }
 }
