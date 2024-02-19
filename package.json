@@ -3,8 +3,9 @@
   "version": "0.0.1",
   "description": "A peer-to-peer address book and protocol built on Libp2p, Helia and OrbitDB.",
   "main": "index.js",
+  "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "cross-env mocha --config test/.mocharc.json"
   },
   "repository": {
     "type": "git",
@@ -27,5 +28,13 @@
   "bugs": {
     "url": "https://github.com/silkroadnomad/js-decontact/issues"
   },
-  "homepage": "https://github.com/silkroadnomad/js-decontact#readme"
+  "homepage": "https://github.com/silkroadnomad/js-decontact#readme",
+  "dependencies": {
+    "@orbitdb/core": "^2.0.1"
+  },
+  "devDependencies": {
+    "assert": "^2.1.0",
+    "cross-env": "^7.0.3",
+    "mocha": "^10.3.0"
+  }
 }

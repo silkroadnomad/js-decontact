@@ -1,0 +1,1 @@
+export { default as createDeContact } from './decontact.js'
