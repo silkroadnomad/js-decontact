@@ -1,5 +1,5 @@
 # js-decontact
-An address book peer-to-peer protocol built on Libp2p, Helia and OrbitDB
+An simple address book peer-to-peer protocol built on Libp2p, Helia and OrbitDB
 
 ## Features
 0. DID wallet (via seed phrase)
@@ -10,6 +10,13 @@ An address book peer-to-peer protocol built on Libp2p, Helia and OrbitDB
    - Alice's address book is automatically updated by Bob
 3. Auto-Sync of own devices with same seed phrase 
    - Having the same seed phrase on different devices results into auto replicated address books.
+
+## Todo
+- DID from seed phrase
+- Encryption
+- Browser based distributed storage protocol
+- Blockchain based handles
+- Blockchain based DIDs (Bitcoin, Doichain, Namecoin)
 
 ## Usage
 ```
