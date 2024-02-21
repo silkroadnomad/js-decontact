@@ -50,7 +50,7 @@ const DeContact = async ({ orbitdb } = {}) => {
             console.log("connection:open",c.detail.remoteAddr.toString())
             connectedPeers++;
             if(connectedPeers>1) {
-                await getAddressRecords();
+                await getAddressRecords(dbMyAddressBook);
             }
         });
 
@@ -96,6 +96,7 @@ const DeContact = async ({ orbitdb } = {}) => {
      * @returns {Promise<[]>}
      */
     async function getAddressRecords(_dbMyAddressBook) {
+
         const addressRecords = await _dbMyAddressBook.all();
         let transformedRecords = addressRecords.map(record => ({
             ...record.value,
