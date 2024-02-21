@@ -270,7 +270,7 @@ const DeContact = async ({ orbitdb } = {}) => {
      * @param scannedAddress
      * @returns {Promise<void>}
      */
-     const requestAddress = async (_scannedAddress) => {
+    const requestAddress = async (_scannedAddress) => {
         const scannedAddress = _scannedAddress.trim()
         const data = { sharedAddress:dbMyAddressBook.address }
         await dbMyAddressBook.access.grant("admin",orbitdb.identity.id)
@@ -319,10 +319,26 @@ const DeContact = async ({ orbitdb } = {}) => {
         return syncedFollowerDBs
     }
 
+    /**
+     * My addresses in an array ready to be rendered in a datatable component
+     * @returns {*[]}
+     */
+    const getMyAddresses = () => {
+        return myAddresses
+    }
 
+    /**
+     * MyAddressBook as OrbitDB
+     * @returns {*}
+     */
     const getMyAddressBook = () => {
         return dbMyAddressBook
     }
+
+    /**
+     * List of subscriberList. When initialized containing the OrbitDB listening for updates via gossip-sub
+     * @returns {*[]}
+     */
     const getSubscriberList = () => {
         return subscriberList
     }
@@ -345,6 +361,7 @@ const DeContact = async ({ orbitdb } = {}) => {
         peerId,
         newContact,
         addContact,
+        getMyAddresses,
         getMyAddressBook,
         getSyncedDevices,
         getSynchedFollowerDBs,
