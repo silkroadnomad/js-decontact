@@ -38,7 +38,7 @@ const DeContact = async ({ orbitdb } = {}) => {
 
     /**
      * Opens deContact address book
-     * @returns {Promise<any[]>}
+     * @returns {Promise<any[]>} dbMyAddressBook (the orbitdb containing all addresses)
      */
     const open = async () => {
         const myDBName = await sha256(orbitdb.identity.id)
@@ -74,8 +74,8 @@ const DeContact = async ({ orbitdb } = {}) => {
         })
 
         await getAddressRecords(dbMyAddressBook)
-
         initReplicationOfSubscriberDBs(orbitdb.identity.id)
+
         dbMyAddressBook.events.on('join', async (peerId, heads) => {
             console.log("one of my devices joined and synced my address book",peerId)
             syncedDevices++
