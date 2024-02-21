@@ -1,7 +1,5 @@
 import { strictEqual, notStrictEqual, ok } from 'assert'
 import { rimraf } from 'rimraf'
-import fs from 'fs'
-import path from 'path'
 import { createOrbitDB, isIdentity } from '@orbitdb/core'
 import connectPeers from './utils/connect-nodes.js'
 import createHelia from './utils/create-helia.js'
@@ -84,7 +82,7 @@ describe('deContact basics', function () {
                         strictEqual(1,bobRecords.length)
                         strictEqual(bobRecords[0].value.firstName,"Bob")
 
-                        //2. Send an address request to Bob
+                        //2. Alice sends an address request to Bob
                         await deContactInstance1.requestAddress(deContactInstance2.identity.id)
 
                         //3. Bob should receive a gossip sub call
@@ -98,6 +96,7 @@ describe('deContact basics', function () {
                         aliceRecords = await aliceAddrDB.all()
                         strictEqual(aliceRecords[0].value.firstName,'Alice')
                         strictEqual(aliceRecords[0].value.city,'Montpellier')
+
                         strictEqual(aliceRecords[1].value.firstName,'Bob')
                         strictEqual(aliceRecords[1].value.city,'Firenze')
 

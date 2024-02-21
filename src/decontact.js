@@ -2,7 +2,19 @@ import { sha256 } from "./utils.js";
 import { OrbitDBAccessController, useAccessController } from "@orbitdb/core";
 import { fromString, toString } from 'uint8arrays';
 
+/**
+ * The gossip sub topic
+ * @type {string}
+ */
 export const CONTENT_TOPIC = "/dContact/3/message/proto";
+
+
+/**
+ * DeContact - a local first smart contract and peer-to-peer address book protocol
+ * @param orbitdb
+ * @returns {Promise<{peerId: *, ipfs: *, getSubscriberList: (function(): *[]), newContact: (function(): {owner: string, lastName: string, city: string, postalCode: string, countryRegion: string, own: boolean, sharedAddress: string, stateProvince: string, firstName: string, street: string, _id: string, category: string, ipns: string}), getSyncedDevices: (function(): number), addContact: (function(*): Promise<*>), isPubSubMessageReceived: (function(): boolean), requestAddress: ((function(*): Promise<void>)|*), getMyAddressBook: (function(): *), stop: ((function(): Promise<void>)|*), identity: *, isRequesterDBReplicated: (function(): boolean), open: (function(): Promise<*>)}>}
+ * @constructor
+ */
 const DeContact = async ({ orbitdb } = {}) => {
 
     const REQUEST_ADDRESS = 'REQUEST_ADDRESS';
@@ -85,24 +97,20 @@ const DeContact = async ({ orbitdb } = {}) => {
      * @returns {Promise<[]>}
      */
     async function getAddressRecords(_dbMyAddressBook) {
-        try {
-            const addressRecords = await _dbMyAddressBook.all();
-            let transformedRecords = addressRecords.map(record => ({
-                ...record.value,
-                id: record.value._id
-            }));
-            transformedRecords = transformedRecords.filter((addr)=> {
-                return addr.id !==undefined && addr.firstName !== undefined && addr.lastName
-            })
-            return transformedRecords
-            // console.log("records in dbMyAddressBook ",addressRecords)
-        } catch (e) {
-            throw "something isn't yet correctly setup inside dbMyAddressBook"
-        }
+        const addressRecords = await _dbMyAddressBook.all();
+        let transformedRecords = addressRecords.map(record => ({
+            ...record.value,
+            id: record.value._id
+        }));
+        transformedRecords = transformedRecords.filter((addr)=> {
+            return addr.id !==undefined && addr.firstName !== undefined && addr.lastName
+        })
+        return transformedRecords
     }
 
     /**
      * Loop through our address book and filter all addresses where others are the owners
+     *
      * @param ourDID our DID
      * @returns {Promise<void>}
      */
@@ -145,8 +153,8 @@ const DeContact = async ({ orbitdb } = {}) => {
     }
 
     /**
-     * Adds a new address record,
-     * sets owner, sharedAddress (our db.address) an _id (a sha256 of the original address)
+     * Adds a new address record.
+     * Sets owner, sharedAddress (our db.address) an _id (a sha256 of the original address)
      * returns a hash
      * @param addr
      * @returns {Promise<string>}
@@ -159,6 +167,12 @@ const DeContact = async ({ orbitdb } = {}) => {
         return hash
     }
 
+    /**
+     * dContact gossip sub protocol handler
+     *
+     * @param dContactMessage
+     * @returns {Promise<void>}
+     */
     async function handleMessage (dContactMessage) {
         if (!dContactMessage) return;
         const messageObj = JSON.parse(dContactMessage)
@@ -198,8 +212,7 @@ const DeContact = async ({ orbitdb } = {}) => {
                         }
                     }
                     const isRes = await isRecipientInSenderDB(requesterDB, messageObj)
-                    if (isRes == true)
-                        break;
+                    if (isRes) break;
                     requesterDB.events.on('join', onJoin)
 
                     break;
@@ -209,6 +222,13 @@ const DeContact = async ({ orbitdb } = {}) => {
         }
     }
 
+    /**
+     * isRecipientInSenderDB
+     *
+     * @param requesterDB
+     * @param messageObj
+     * @returns {Promise<boolean>}
+     */
     async function isRecipientInSenderDB (requesterDB, messageObj){
 
         const records = await requesterDB.all()
