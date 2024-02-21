@@ -23,8 +23,9 @@ const DeContact = async ({ orbitdb } = {}) => {
     const identity = orbitdb.identity
     const peerId = orbitdb.peerId
     let syncedDevices = 0
-    let subscriberList = []
+    let syncedFollowerDBs = 0
     let connectedPeers = 0
+    let subscriberList = []
 
     let dbMyAddressBook
     let myAddresses = []
@@ -50,7 +51,6 @@ const DeContact = async ({ orbitdb } = {}) => {
             connectedPeers++;
             if(connectedPeers>1) {
                 await getAddressRecords();
-                // progressState.set(6)
             }
         });
 
@@ -64,7 +64,6 @@ const DeContact = async ({ orbitdb } = {}) => {
             const message = toString(event.detail.data)
             messageReceived = true
             if(!topic.startsWith(CONTENT_TOPIC)) return
-            console.log(`Message received on topic '${topic}': ${message}`)
             handleMessage(message)
         })
 
@@ -84,7 +83,7 @@ const DeContact = async ({ orbitdb } = {}) => {
         })
 
         dbMyAddressBook.events.on('update', async (entry) => {
-            console.log("someone updated my address book with data:",entry.payload.value.firstName)
+            console.log(`someone updated my address book with data: ${entry.id}`,entry.payload.value.firstName)
             myAddresses = await getAddressRecords(dbMyAddressBook)
         })
         return dbMyAddressBook
@@ -109,8 +108,10 @@ const DeContact = async ({ orbitdb } = {}) => {
     }
 
     /**
-     * Loop through our address book and filter all addresses where others are the owners
+     * Loop through our address book and filter all our addresses where others are the owners
+     * (we follow their addresses - we are the follower).
      *
+     * Then initialize all databases we follow
      * @param ourDID our DID
      * @returns {Promise<void>}
      */
@@ -122,8 +123,9 @@ const DeContact = async ({ orbitdb } = {}) => {
         for (const s in subscriberList) {
             const dbAddress = subscriberList[s].value.sharedAddress
             subscriberList[s].db = await orbitdb.open(dbAddress, {type: 'documents',sync: true})
+            subscriberList[s].db.events.on('join', async (peerId, heads) => syncedFollowerDBs++)
             subscriberList[s].db.all().then((records)=> { //replicate the addresses of Bob, Peter etc.
-                console.log(`subscriberList dbAddress: ${dbAddress} records`,records)
+                // console.log(`subscriberList dbAddress: ${dbAddress} records`,records)
             })
         }
     }
@@ -183,8 +185,7 @@ const DeContact = async ({ orbitdb } = {}) => {
                     data = JSON.parse(messageObj.data)
                     console.log("opening requester db",data.sharedAddress)
                     requesterDBReplicated = false
-                    requesterDB = await orbitdb.open(data.sharedAddress, {
-                        type: 'documents',sync: true})
+                    requesterDB = await orbitdb.open(data.sharedAddress, {type: 'documents',sync: true})
                     await requesterDB.all()
                     const onJoin = async (peerId, heads) => {
                         requesterDBReplicated = true
@@ -193,7 +194,6 @@ const DeContact = async ({ orbitdb } = {}) => {
                         if(result){
                             if(result==='ONLY_HANDOUT'){
                                 await writeMyAddressIntoRequesterDB(requesterDB); //Bob writes his address into Alice address book
-                                console.log("writeMyAddressIntoRequesterDB")
                                 //add a subscriber to our address book (should not be displayed in datatable
                                 const subscriber  = { sharedAddress: data.sharedAddress, subscriber:true }
                                 subscriber._id = await sha256(JSON.stringify(subscriber));
@@ -271,19 +271,12 @@ const DeContact = async ({ orbitdb } = {}) => {
      */
      const requestAddress = async (_scannedAddress) => {
         const scannedAddress = _scannedAddress.trim()
-        try {
-            // console.log("request requestAddress from", orbitdb.identity.id); //TODO remove white spaces from scannedAddress string
-            const data = { sharedAddress:dbMyAddressBook.address }
-            await dbMyAddressBook.access.grant("admin",orbitdb.identity.id) //my own
-            await dbMyAddressBook.access.grant("write",scannedAddress) //the requested did (to write into my address book)
-            const capabilities = await dbMyAddressBook.access.capabilities()
-            await dbMyAddressBook.put({_id: scannedAddress}) //adding a dummy record for bob
-            console.log(`granted write permission`,capabilities)
-            const msg = await createMessage(REQUEST_ADDRESS, scannedAddress,data);
-            await libp2p.services.pubsub.publish(CONTENT_TOPIC+"/"+scannedAddress,fromString(JSON.stringify(msg))) //TODO when publishing a message sign content and enrypt content
-        } catch (error) {
-            console.error('Error in requestAddress:', error);
-        }
+        const data = { sharedAddress:dbMyAddressBook.address }
+        await dbMyAddressBook.access.grant("admin",orbitdb.identity.id)
+        await dbMyAddressBook.access.grant("write",scannedAddress) //the requested did (to write into my address book)
+        await dbMyAddressBook.put({_id: scannedAddress}) //adding a dummy record for bob
+        const msg = await createMessage(REQUEST_ADDRESS, scannedAddress,data);
+        await libp2p.services.pubsub.publish(CONTENT_TOPIC+"/"+scannedAddress,fromString(JSON.stringify(msg)))
     }
 
     /**
@@ -295,16 +288,8 @@ const DeContact = async ({ orbitdb } = {}) => {
      */
     async function writeMyAddressIntoRequesterDB(requesterDB) {
         delete myAddresses[0].own;
-        console.log("myAddresses",myAddresses)
-        const rec01 = await requesterDB.all()
-        console.log("rec01",rec01)
         const hash = await requesterDB.put(myAddresses[0]);
-        const rec02 = await requesterDB.all()
-        console.log("rec02",rec02)
-        const delhash = await requesterDB.del(orbitdb.identity.id);
-        console.log("delhash",delhash)
-        // const rec03 = await requesterDB.all()
-        // console.log("rec03",rec03)
+        await requesterDB.del(orbitdb.identity.id);
         return hash
     }
 
@@ -316,10 +301,24 @@ const DeContact = async ({ orbitdb } = {}) => {
         return requesterDBReplicated
     }
 
-
+    /**
+     * Retunrs the number of other devices synced with our db.
+     * Could be one of our devices but could be also a follower which synced (backed) our devices
+     * @returns {number}
+     */
     const getSyncedDevices = () => {
         return syncedDevices
     }
+
+    /**
+     * Returns the number of synced dbs we follow (the dbs we backup)
+     * @returns {number}
+     */
+    const getSynchedFollowerDBs = () => {
+        return syncedFollowerDBs
+    }
+
+
     const getMyAddressBook = () => {
         return dbMyAddressBook
     }
@@ -347,6 +346,7 @@ const DeContact = async ({ orbitdb } = {}) => {
         addContact,
         getMyAddressBook,
         getSyncedDevices,
+        getSynchedFollowerDBs,
         getSubscriberList,
         requestAddress,
         isPubSubMessageReceived,

@@ -12,6 +12,10 @@ An simple address book peer-to-peer protocol built on Libp2p, Helia and OrbitDB
    - Having the same seed phrase on different devices results into auto replicated address books.
 
 ## Todo
+- Test Bob-Bot 
+  - start test-bot-node with fix DID 
+  - answer automatically with address (write into Alice (requester) DB)
+  - (optionally)
 - DID from seed phrase
 - Encryption
 - Browser based distributed storage protocol

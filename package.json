@@ -1,6 +1,6 @@
 {
-  "name": "js-decontact",
-  "version": "0.0.1",
+  "name": "decontact",
+  "version": "0.0.2",
   "description": "A peer-to-peer address book and protocol built on Libp2p, Helia and OrbitDB.",
   "main": "index.js",
   "type": "module",

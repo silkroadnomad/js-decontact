@@ -92,15 +92,25 @@ describe('deContact basics', function () {
                         await waitFor(() => deContactInstance2.isRequesterDBReplicated(), () => true)
 
                         //5. Alice address book is synced (and has Bobs contact data)
+                        await waitFor(() => deContactInstance1.getSyncedDevices(), () => 1) //TODO why twice?
                         await waitFor(() => deContactInstance1.getSyncedDevices(), () => 1)
                         aliceRecords = await aliceAddrDB.all()
+
                         strictEqual(aliceRecords[0].value.firstName,'Alice')
                         strictEqual(aliceRecords[0].value.city,'Montpellier')
 
                         strictEqual(aliceRecords[1].value.firstName,'Bob')
                         strictEqual(aliceRecords[1].value.city,'Firenze')
 
-                        //6. Bob now has a subscriberlist of
+                        //6. Bob now has a subscriberlist
+                        const subscriberListAlice = deContactInstance1.getSubscriberList()
+                        strictEqual(subscriberListAlice.length,0)
+                        const subscriberListBob = deContactInstance2.getSubscriberList()
+                        strictEqual(subscriberListBob.length,1)
+
+                        const syncedFollowerDbs = await deContactInstance2.getSynchedFollowerDBs()
+                        console.log("syncedFollowerDbs",syncedFollowerDbs)
+
                 })
         })
 });
