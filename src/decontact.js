@@ -72,8 +72,8 @@ const DeContact = async ({ orbitdb } = {}) => {
             sync: true,
             AccessController: OrbitDBAccessController({ write: [orbitdb.identity.id]})
         })
-
-        await getAddressRecords(dbMyAddressBook)
+        //baasdfasdf
+        myAddresses = await getAddressRecords(dbMyAddressBook)
         initReplicationOfSubscriberDBs(orbitdb.identity.id)
 
         dbMyAddressBook.events.on('join', async (peerId, heads) => {
