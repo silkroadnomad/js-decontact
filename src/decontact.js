@@ -177,11 +177,11 @@ const DeContact = async ({ orbitdb } = {}) => {
 
     /**
      * Deletes an address by its _id
-     * @param addr
+     * @param _id
      * @returns {Promise<string>} hash of the deleted record
      */
-    async function deleteContact(addr) {
-        const hash = await dbMyAddressBook.del(addr._id)
+    async function deleteContact(_id) {
+        const hash = await dbMyAddressBook.del(_id)
         return hash
     }
     /**
