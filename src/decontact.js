@@ -1,4 +1,4 @@
-import { sha256 } from "./utils.js";
+import {getAddressRecords, sha256} from "./utils.js";
 import { OrbitDBAccessController, useAccessController } from "@orbitdb/core";
 import { fromString, toString } from 'uint8arrays';
 
@@ -41,6 +41,7 @@ const DeContact = async ({ orbitdb } = {}) => {
      * @returns {Promise<any[]>} dbMyAddressBook (the orbitdb containing all addresses)
      */
     const open = async () => {
+
         const myDBName = await sha256(orbitdb.identity.id)
         useAccessController(OrbitDBAccessController)
         const ourContentTopic = CONTENT_TOPIC+"/"+orbitdb.identity.id
@@ -72,7 +73,7 @@ const DeContact = async ({ orbitdb } = {}) => {
             sync: true,
             AccessController: OrbitDBAccessController({ write: [orbitdb.identity.id]})
         })
-        //baasdfasdf
+    
         myAddresses = await getAddressRecords(dbMyAddressBook)
         initReplicationOfSubscriberDBs(orbitdb.identity.id)
 
@@ -83,29 +84,10 @@ const DeContact = async ({ orbitdb } = {}) => {
         })
 
         dbMyAddressBook.events.on('update', async (entry) => {
-            console.log(`someone updated my address book with data: ${entry.id}`,entry.payload.value.firstName)
+            console.log(`someone updated my address book with data: ${entry.id}`,entry?.payload?.value?.firstName)
             myAddresses = await getAddressRecords(dbMyAddressBook)
         })
         return dbMyAddressBook
-    }
-
-    /**
-     * Gets all contact data from orbitdb and returns it in an array
-     * firstname and lastname must be set.
-     * @param _dbMyAddressBook
-     * @returns {Promise<[]>}
-     */
-    async function getAddressRecords(_dbMyAddressBook) {
-
-        const addressRecords = await _dbMyAddressBook.all();
-        let transformedRecords = addressRecords.map(record => ({
-            ...record.value,
-            id: record.value._id
-        }));
-        transformedRecords = transformedRecords.filter((addr)=> {
-            return addr.id !==undefined && addr.firstName !== undefined && addr.lastName
-        })
-        return transformedRecords
     }
 
     /**
@@ -170,6 +152,38 @@ const DeContact = async ({ orbitdb } = {}) => {
         return hash
     }
 
+    /**
+     * 1. Save the current edited address into the Svelte storage (local only)
+     * 2. Inform the subscribers about the address update
+     * @returns {Promise<void>}
+     */
+    async function updateContact(_selectedAddr) {
+        console.log("updating contact",_selectedAddr)
+        _selectedAddr.owner = orbitdb.identity.id
+        await dbMyAddressBook.put(_selectedAddr)
+
+        // getAddressRecords(myDBAddressBook).then(result => _myAddressBook = result)
+        // myAddressBook.set(_myAddressBook)
+
+        // notify(`Contact updated successfully - informing our subscribers! ${_myAddressBook.firstName} ${_myAddressBook.lastName}`)
+        if(_selectedAddr.owner === orbitdb.identity.id){ //only send update requests if my own address was changed
+            for (const s in  subscriberList) {
+                console.log("updating address in ",subscriberList[s].db.address)
+                subscriberList[s].db.put(_selectedAddr)
+                // notify(`Updated db ${_subscriberList[s].db.address} `) //TODO publish an event about updated
+            }
+        }
+    }
+
+    /**
+     * Deletes an address by its _id
+     * @param addr
+     * @returns {Promise<string>} hash of the deleted record
+     */
+    async function deleteContact(addr) {
+        const hash = await dbMyAddressBook.del(addr._id)
+        return hash
+    }
     /**
      * dContact gossip sub protocol handler
      *
@@ -344,7 +358,7 @@ const DeContact = async ({ orbitdb } = {}) => {
     }
 
     /**
-     * Stops deContact
+     * Stops deContact instance (and its OrbitDB)
      * @function stop
      * @instance
      * @async
@@ -361,6 +375,8 @@ const DeContact = async ({ orbitdb } = {}) => {
         peerId,
         newContact,
         addContact,
+        updateContact,
+        deleteContact,
         getMyAddresses,
         getMyAddressBook,
         getSyncedDevices,
