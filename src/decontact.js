@@ -158,14 +158,8 @@ const DeContact = async ({ orbitdb } = {}) => {
      * @returns {Promise<void>}
      */
     async function updateContact(_selectedAddr) {
-        console.log("updating contact",_selectedAddr)
         _selectedAddr.owner = orbitdb.identity.id
         await dbMyAddressBook.put(_selectedAddr)
-
-        // getAddressRecords(myDBAddressBook).then(result => _myAddressBook = result)
-        // myAddressBook.set(_myAddressBook)
-
-        // notify(`Contact updated successfully - informing our subscribers! ${_myAddressBook.firstName} ${_myAddressBook.lastName}`)
         if(_selectedAddr.owner === orbitdb.identity.id){ //only send update requests if my own address was changed
             for (const s in  subscriberList) {
                 console.log("updating address in ",subscriberList[s].db.address)
@@ -239,7 +233,6 @@ const DeContact = async ({ orbitdb } = {}) => {
 
     /**
      * isRecipientInSenderDB
-     *
      * @param requesterDB
      * @param messageObj
      * @returns {Promise<boolean>}
@@ -259,7 +252,6 @@ const DeContact = async ({ orbitdb } = {}) => {
 
     /**
      * When ever we want to send something out to a peer we create a message here
-     * //TODO add encryption
      * @param command
      * @param recipient
      * @param data
@@ -316,8 +308,18 @@ const DeContact = async ({ orbitdb } = {}) => {
         return requesterDBReplicated
     }
 
+
     /**
-     * Retunrs the number of other devices synced with our db.
+     * Returns the number of connected ppers
+     * @returns {number}
+     */
+    const getConnectedPeers = () => {
+        return connectedPeers
+    }
+
+
+    /**
+     * Returns the number of other devices synced with our db.
      * Could be one of our devices but could be also a follower which synced (backed) our devices
      * @returns {number}
      */
@@ -329,7 +331,7 @@ const DeContact = async ({ orbitdb } = {}) => {
      * Returns the number of synced dbs we follow (the dbs we backup)
      * @returns {number}
      */
-    const getSynchedFollowerDBs = () => {
+    const getSyncedFollowerDBs = () => {
         return syncedFollowerDBs
     }
 
@@ -377,10 +379,11 @@ const DeContact = async ({ orbitdb } = {}) => {
         addContact,
         updateContact,
         deleteContact,
+        getConnectedPeers,
         getMyAddresses,
         getMyAddressBook,
         getSyncedDevices,
-        getSynchedFollowerDBs,
+        getSyncedFollowerDBs,
         getSubscriberList,
         requestAddress,
         isPubSubMessageReceived,

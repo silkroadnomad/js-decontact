@@ -12,15 +12,16 @@ An address book peer-to-peer protocol and local first smart contract built with 
    - Having the same seed phrase on different devices results into auto replicated address books.
 
 ## Todo
-- integrate into deContact.xyz
+- [x] integrate into deContact.xyz
+  - [ ] confirm dialog still missing in handleMessages (can be a callback method)
+  - [ ] DID from seed phrase
+  - [ ] Encryption
 - Test Bob-Bot 
   - start test-bot-node with fix DID 
   - answer automatically with address (write into Alice (requester) DB)
-- DID from seed phrase
-- Encryption
-- Browser based distributed storage protocol
-- Blockchain based handles
-- Blockchain based DIDs (Bitcoin, Doichain, Namecoin)
+- [ ] browser based distributed storage protocol
+- [ ] blockchain based handles
+- [ ] blockchain based DIDs (Bitcoin, Doichain, Namecoin)
 
 ## Usage
 ```
