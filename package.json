@@ -1,6 +1,6 @@
 {
   "name": "decontact",
-  "version": "0.0.12",
+  "version": "0.0.13",
   "description": "A peer-to-peer address book and protocol built on Libp2p, Helia and OrbitDB.",
   "main": "src/index.js",
   "exports": {
@@ -50,6 +50,7 @@
   "devDependencies": {
     "assert": "^2.1.0",
     "cross-env": "^7.0.3",
+    "crypto": "^1.0.1",
     "mocha": "^10.3.0",
     "path": "^0.12.7",
     "rimraf": "^5.0.5"

@@ -1,4 +1,4 @@
-import {getAddressRecords, sha256} from "./utils.js";
+import { getAddressRecords, sha256 } from "./utils.js";
 import { OrbitDBAccessController, useAccessController } from "@orbitdb/core";
 import { fromString, toString } from 'uint8arrays';
 
@@ -91,10 +91,10 @@ const DeContact = async ({ orbitdb } = {}) => {
     }
 
     /**
-     * Loop through our address book and filter all our addresses where others are the owners
+     * Filter all addresses which are not ours (where we are not owner)
      * (we follow their addresses - we are the follower).
      *
-     * Then initialize all databases we follow
+     * Then initialize all databases we follow and replicate them.
      * @param ourDID our DID
      * @returns {Promise<void>}
      */
@@ -212,8 +212,6 @@ const DeContact = async ({ orbitdb } = {}) => {
                             else {
                                 await writeMyAddressIntoRequesterDB(requesterDB);
                                 await requestAddress(messageObj.sender)
-                                //await addRequestersContactDataToMyDB(requesterDB,messageObj.sender) //we want to write Alice contact data into our address book same time
-                                //TODO in case Bob want's to exchange the data he should just send another request to Alice (just as Alice did)
                             }
                             initReplicationOfSubscriberDBs(orbitdb.identity.id) //init replication of all subscriber ids
                         }else{
@@ -277,12 +275,18 @@ const DeContact = async ({ orbitdb } = {}) => {
      * @returns {Promise<void>}
      */
     const requestAddress = async (_scannedAddress) => {
+        const datatest = await dbMyAddressBook.all()
+        console.log("requesting address",datatest)
         const scannedAddress = _scannedAddress.trim()
         const data = { sharedAddress:dbMyAddressBook.address }
         await dbMyAddressBook.access.grant("admin",orbitdb.identity.id)
         await dbMyAddressBook.access.grant("write",scannedAddress) //the requested did (to write into my address book)
-        await dbMyAddressBook.put({_id: scannedAddress}) //adding a dummy record for bob
-        const msg = await createMessage(REQUEST_ADDRESS, scannedAddress,data);
+        console.log(" dbMyAddressBook.access.grant",scannedAddress)
+        console.log(" dbMyAddressBook",dbMyAddressBook)
+        await dbMyAddressBook.put({_id: scannedAddress}) //adding a dummy record for bob - otherwise permission isn't given
+        console.log("adding a dummy record for bob which he can overwrite")
+        console.log("CONTENT_TOPIC",CONTENT_TOPIC)
+        console.log("fromString(JSON.stringify(msg))",fromString(JSON.stringify(msg)))
         await libp2p.services.pubsub.publish(CONTENT_TOPIC+"/"+scannedAddress,fromString(JSON.stringify(msg)))
     }
 

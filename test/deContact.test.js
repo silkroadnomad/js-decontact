@@ -108,8 +108,8 @@ describe('deContact basics', function () {
                         const subscriberListBob = deContactInstance2.getSubscriberList()
                         strictEqual(subscriberListBob.length,1)
 
-                        const syncedFollowerDbs = await deContactInstance2.getSynchedFollowerDBs()
-                        console.log("syncedFollowerDbs",syncedFollowerDbs)
+                        // const syncedFollowerDbs = await deContactInstance2.getSynchedFollowerDBs()
+                        // console.log("syncedFollowerDbs",syncedFollowerDbs)
 
                 })
         })
