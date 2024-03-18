@@ -14,7 +14,7 @@ An address book peer-to-peer protocol and local first smart contract built with 
 
 ## Todo
 - [x] integrate into deContact.xyz
-  - [ ] confirm dialog still missing in handleMessages (can be a callback method)
+  - [ ] confirm dialog still missing in handleMessages (via event dispatch)
   - [ ] DID from seed phrase
   - [ ] Encryption
 - [ ] alternative PublicKey for browser in combination with DIDIdentityProvider 
